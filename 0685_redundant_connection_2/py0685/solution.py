@@ -36,8 +36,6 @@ def findRedundantDirectedConnection(edges: List[List[int]]) -> List[int]:
 
         start2 = rvmap[end]
 
-        # print(f'start: {start}, start2: {start2}')
-
         if start in vmap.get(end, []):
             return [start, end]
 
@@ -50,27 +48,21 @@ def findRedundantDirectedConnection(edges: List[List[int]]) -> List[int]:
         if ind(start2) == 0 and outd(start2) == 1:
             return [start, end]
 
-        # then anyway, use the latter
+        # then anyway, use the latter (no cycle)
         return [start, end]
 
     # Exact one circle structure
     # No upstream
     # Check if its in a circle
     cirset = set()
-    exclude = set()
 
     def is_circle_v(u, visset):
-        # if u in exclude:
-        #     return False
-
         nonlocal cirset
 
         visset.add(u)
-        # print(f'visit {u}')
         l = vmap.get(u, [])
 
         if len(l) == 0:  # Noncircle
-            # exclude.add(u)
             return False
         else:
             for v in l:
@@ -81,15 +73,12 @@ def findRedundantDirectedConnection(edges: List[List[int]]) -> List[int]:
                 if is_circle_v(v, visset):
                     return True
 
-            # exclude.add(u)
             return False
 
     for v in vmap.keys():
         if is_circle_v(v, set()):
-            # print(f'break at {v}')
             break
 
-    # print(f'cirset: {cirset}')
     for u,v in reversed(edges):
         if u in cirset and v in cirset:
             return [u, v]
