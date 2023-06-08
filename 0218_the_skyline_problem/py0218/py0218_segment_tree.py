@@ -47,6 +47,7 @@ def solve(buildings: List[List[int]]) -> List[List[int]]:
     return res
 
 
+
 class SegmentTree():
     """DFS Layout,
     left: i+1,

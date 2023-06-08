@@ -24,9 +24,8 @@ def solve(buildings: List[List[int]]) -> List[List[int]]:
 
     x_map = {x: i for i, x in enumerate(x_data)}
 
-    # Build BIT by Batch Update
-
-    bit = RevBIT(len(x_data))
+    #bit = RevBIT(len(x_data))
+    bit = FakeBIT(len(x_data))
 
     # Sweep Line
 
@@ -35,12 +34,13 @@ def solve(buildings: List[List[int]]) -> List[List[int]]:
 
     for i, x in enumerate(x_data):
         while j < len(buildings) and x == buildings[j][0]:
-            bit.update(x_map[buildings[j][1]] - 1, buildings[j][2])
+            r, h = buildings[j][1:3]
+
+            bit.update(x_map[r]-1, h, until=i)
+
             j += 1
 
         h = bit.suffix(x_map[x])
-
-        # print(h)
 
         if not res or res[-1][1] != h:
             res.append([x, h])
@@ -49,17 +49,46 @@ def solve(buildings: List[List[int]]) -> List[List[int]]:
 
 
 class RevBIT():
-    """Binary Indexed Tree"""
+    """Reversed Binary Indexed Tree"""
 
     def __init__(self, data_len: int):
         # base 0
         self.data = [0] * data_len
 
-    def update(self, i: int, val: int) -> None:
-        while i >= 0:
+    def update(self, i: int, val: int, until: int) -> None:
+        while i >= until:
             self.data[i] = max(self.data[i], val)
 
-            i -= (i+1) & -(i+1)
+            i -= (len(self.data) - i - 1) & -(len(self.data) - i - 1)
+
+    def suffix(self, i: int) -> int:
+        """suffix"""
+        acc = 0
+
+        while True:
+            acc = max(acc, self.data[i])
+
+            l = (len(self.data) - i - 1) & -(len(self.data) - i - 1)
+            if l == 0:
+                break
+            i += l
+
+
+        return acc
+
+
+class FakeBIT():
+    """Fake Binary Indexed Tree whose prefix for update and suffix for query"""
+
+    def __init__(self, data_len: int):
+        # base 0
+        self.data = [0] * data_len
+
+    def update(self, i: int, val: int, until: int) -> None:
+        while i >= until:
+            self.data[i] = max(self.data[i], val)
+
+            i -= (i + 1) & -(i + 1)
 
     def suffix(self, i: int) -> int:
         acc = 0
@@ -67,9 +96,10 @@ class RevBIT():
         while i < len(self.data):
             acc = max(acc, self.data[i])
 
-            i += (i+1) & -(i+1)
+            i += (i + 1) & -(i + 1)
 
         return acc
+
 
 
 if __name__ == '__main__':
