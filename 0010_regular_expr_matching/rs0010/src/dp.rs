@@ -1,54 +1,63 @@
 const MAX_S_LEN: usize = 20;
 
+static mut CUR: [bool; MAX_S_LEN + 1] = [false; MAX_S_LEN + 1];
+static mut PRE1: [bool; MAX_S_LEN + 1] = [false; MAX_S_LEN + 1];
+
+
 /// Running Time Saving
 /// patten-text [j][i]
 pub fn solve_time_saving(s: String, p: String) -> bool {
-    let p_bytes = p.as_bytes();
-    let s_bytes = s.as_bytes();
+    unsafe {
+        let p_bytes = p.as_bytes();
+        let s_bytes = s.as_bytes();
 
-    let mut pre2 = [false; MAX_S_LEN + 1];
-    let mut pre1 = [false; MAX_S_LEN + 1];
-    let mut cur = [false; MAX_S_LEN + 1];
+        CUR[1..=s_bytes.len()].fill(false);
+        CUR[0] = true;
 
-    pre1[0] = true;
+        for j in 1..=p_bytes.len() {
+            if p_bytes[j - 1] == '*' as u8 {
+                // The valid pattern has guaranteed that j >= 2
+                if p_bytes[j - 2] == '.' as u8 {
+                    for i in 0..=s_bytes.len() {
+                        let pre2 = PRE1[i];
+                        PRE1[i] = CUR[i];
+                        CUR[i] = pre2 || i > 0 && CUR[i - 1];
+                    }
+                }
+                else {
+                    for i in 0..=s_bytes.len() {
+                        let pre2 = PRE1[i];
+                        PRE1[i] = CUR[i];
+                        CUR[i] = pre2
+                            || i > 0
+                                && p_bytes[j - 2] == s_bytes[i - 1]
+                                && CUR[i - 1]
+                    }
+                }
+            }
+            else if p_bytes[j - 1] == '.' as u8 {
+                PRE1[..=s_bytes.len()].copy_from_slice(&CUR[..=s_bytes.len()]);
 
-    for j in 1..=p_bytes.len() {
-        if p_bytes[j - 1] == '*' as u8 {
-            // The valid pattern has guaranteed that j >= 2
-            if p_bytes[j - 2] == '.' as u8 {
-                for i in 0..=s_bytes.len() {
-                    cur[i] = pre2[i] || i > 0 && cur[i - 1];
+                CUR[0] = false;
+
+                for i in 1..=s_bytes.len() {
+                    CUR[i] = PRE1[i - 1];
                 }
             }
             else {
-                for i in 0..=s_bytes.len() {
-                    cur[i] = pre2[i]
-                        || i > 0
-                            && p_bytes[j - 2] == s_bytes[i - 1]
-                            && cur[i - 1]
+                PRE1[..=s_bytes.len()].copy_from_slice(&CUR[..=s_bytes.len()]);
+
+                CUR[0] = false;
+
+                for i in 1..=s_bytes.len() {
+                    CUR[i] = p_bytes[j - 1] == s_bytes[i - 1] && PRE1[i-1];
                 }
             }
         }
-        else if p_bytes[j - 1] == '.' as u8 {
-            cur[0] = false;
 
-            for i in 1..=s_bytes.len() {
-                cur[i] = pre1[i - 1];
-            }
-        }
-        else {
-            cur[0] = false;
-
-            for i in 1..=s_bytes.len() {
-                cur[i] = p_bytes[j - 1] == s_bytes[i - 1] && pre1[i-1];
-            }
-        }
-
-        std::mem::swap(&mut pre2, &mut pre1);
-        std::mem::swap(&mut pre1, &mut cur);
+        CUR[s_bytes.len()]
     }
 
-    pre1[s_bytes.len()]
 }
 
 
@@ -66,7 +75,7 @@ pub fn solve_mem_saving(s: String, p: String) -> bool {
         let p_bytes = p.as_bytes();
         let s_bytes = s.as_bytes();
 
-        DP[1..].fill(false);
+        DP[1..=s_bytes.len()].fill(false);
         DP[0] = true;
 
         for j in 1..=p_bytes.len() {
