@@ -41,6 +41,8 @@ if __name__ == "__main__":
         found = solve(input)
         assert found == expect, f"expect: {expect}, however found: {found}"
 
+    test([["1"]], 1)
+
     test(
         [
             ["0", "0", "0", "0", "0", "0", "1"],
@@ -60,4 +62,3 @@ if __name__ == "__main__":
         6,
     )
     test([["0"]], 0)
-    test([["1"]], 1)
